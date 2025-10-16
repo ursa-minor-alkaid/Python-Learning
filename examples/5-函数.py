@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # 练习 1：用户信息格式化器
 
 def print_user_profile(name,age,city="保密",*tags):
