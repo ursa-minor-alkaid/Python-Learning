@@ -1,6 +1,6 @@
 # Magic Method
 
-时间：``
+时间：`2025年10月27日`
 
 ## 1. 简介：<mark style="background-color: #333; color: #fef08a;">“魔法”方法/属性与“语法糖”</mark>
 
@@ -165,24 +165,44 @@
 
 - 对象字典 `__dict__` 是一个内置于大多数Python对象实例中的特殊属性，它本身是一个字典，用来存储该实例的所有可写属性及其对应的值
 - 当你执行一个看似简单的操作，比如 `obj.age = 30`，Python解释器在默认情况下的“幕后操作”其实就是：`obj.__dict__['age'] = 30`
+- `__dict__` 是默认的属性存储区，而我们之前讨论的所有魔术方法和描述器，都是围绕着如何与这个默认存储区进行交互而设计的。它们要么是绕过它，要么是控制对它的访问
 
 ### `__get__`, `__set__`, `__delete__` 详解
 
+**`__get__(self, instance, owner)`**
 
+- 触发时机：当描述器管理的属性被读取时调用。
+- 参数说明：
+  - `self`: 描述器对象自身的实例
+  - `instance`: 拥有者对象的实例。也就是我们正在通过哪个对象来访问这个属性。例如，执行 `my_obj.my_attr `时，`instance` 就是 `my_obj`
+  - `owner`: 拥有者的类。例如，`instance` 是 `MyClass` 的一个实例，那么 `owner` 就是 `MyClass` 这个类本身
+- 特殊情况：如果通过类来访问属性（如 MyClass.my_attr），instance 参数会是 None。这允许你定义当属性在类级别被访问时的不同行为。
 
-```python
+**`__set__(self, instance, value)`**
 
-```
+- 触发时机：当描述器管理的属性被赋值时调用
+- 参数说明：同上
 
-```python
+**`__delete__(self, instance)`**
 
-```
+- 触发时机：当描述器管理的属性被删除时（使用 del 关键字）
+- 参数说明：没有 `class`
 
 ---
 
-## 5. 自定义容器（Container）
+## <mark>5. 自定义容器（Container）</mark>
+
+<mark>在 Python 中，常见的容器类型有: dict, tuple, list, string。其中也提到过可容器和不可变容器的概念。其中 tuple, string 是不可变容器，dict, list 是可变容器</mark>
 
 
+
+```python
+
+```
+
+```python
+
+```
 
 ```python
 
@@ -196,12 +216,32 @@
 
 ## 6. 运算符相关的魔术方法（简要介绍）
 
+- **运算符相关的魔术方法（Operator-related Magic Methods）** 是指一系列特殊的、以双下划线开头和结尾的Python方法，它们能让你自定义一个类的实例如何响应内置的运算符，如 `+`, `==`, `[]`, `in` 等
+  - 这个过程在编程术语中被称为 **“运算符重载”（Operator Overloading）**
+- 核心思想：
+  - 当Python解释器看到一个表达式，比如 `object1 + object2`，它实际上会尝试“翻译”这个操作，将其转换为一个方法调用：`object1.__add__(object2)`
+  - 通过在自己的类中定义 `__add__` 方法，就等于告诉了Python：“当我的类的两个实例相加时，不要用默认的方式，而是执行我在这里写的这段代码”
+- 使用目的：为了让代码更直观、更具可读性、更“Pythonic”
+- 示例：`vector类`
 
+  ```python
+  import math
 
-```python
+  class Vector:
+      def __init__(self, x=0, y=0):
+          self.x = x
+          self.y = y
 
-```
+      # 响应 + 运算符
+      def __add__(self, other):
+          if not isinstance(other, Vector):
+              return NotImplemented # 表示我不知道如何与这个类型相加
+          # 返回一个新的 Vector 实例
+          return Vector(self.x + other.x, self.y + other.y)
 
-```python
-
-```
+      # 响应 == 运算符
+      def __eq__(self, other):
+          if not isinstance(other, Vector):
+              return False
+          return self.x == other.x and self.y == other.y
+  ```
