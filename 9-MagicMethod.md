@@ -1,17 +1,16 @@
 # Magic Method
 
-时间：`2025年10月27日`
+时间：`2026年8月12日`
 
 ## 1. 简介：<mark style="background-color: #333; color: #fef08a;">“魔法”方法/属性与“语法糖”</mark>
 
-- **特殊方法/特殊属性**也被称为 **“魔法”方法（Magic Method
-）/属性**
-  - 在Python中，使用双下划线开头和结尾的命名是一种特殊的命名约定。这些名称被官方称为 **“特殊方法 (Special Methods)”** 或 **“特殊属性 (Special Attributes)”**
+- **特殊方法/特殊属性**也被称为 **“魔法”方法（Magic Method）/属性**
+  - 在Python中，**使用双下划线开头和结尾**的命名是一种特殊的命名约定。这些名称被官方称为 **“特殊方法 (Special Methods)”** 或 **“特殊属性 (Special Attributes)”**
   - 其定义是：由Python语言自身定义和保留的、用于实现特定语言特性或协议的名称。它们不是为用户直接调用而设计的，而是由Python解释器在特定操作发生时自动调用的。
   - 约定的社区俗称是 **“dunder”**，即 **“double underscore”** 的缩写
 - **“语法糖”（Syntactic Sugar）**
-  - 语法糖是指在编程语言中添加的某种语法，这种语法对语言的功能没有影响，但能让程序员更方便、更清晰地使用语言。它是一种“更甜美”的书写方式，其背后对应着更基础、更复杂的代码结构。
-  - 换句话说，语法糖让代码写起来更简单，读起来更清晰，但它并没有创造任何新的计算机能力。解释器或编译器会负责将其“脱糖（Desugar）”，翻译成它背后等价的、更底层的形式。
+  - **语法糖**是指在编程语言中添加的某种语法，这种语法对语言的功能没有影响，但能让程序员更方便、更清晰地使用语言。它是一种“更甜美”的书写方式，其背后对应着更基础、更复杂的代码结构。
+  - 换句话说，语法糖让代码写起来更简单，读起来更清晰，但它并没有创造任何新的计算机能力。**解释器或编译器会负责将其“脱糖（Desugar）”，翻译成它背后等价的、更底层的形式。**
   - 常见的Python语法糖示例：`+` 运算符就是 `__add__` 方法的语法糖
 
 ---
@@ -23,12 +22,58 @@
 
 ---
 
-## 3. 属性的访问控制
+## 3. 作用域 & 非公开（private）
 
-- **属性访问控制（Attribute Access Control）** 是面向对象编程中的一个核心原则，指的是对一个对象的内部状态（即它的属性）的访问进行管理和限制的机制
+### 作用域（Scope）
+
+- **作用域** 是程序中一个变量、函数或其他标识符（名字）可以被有效访问的区域。它本质上定义了一个“名字”的可见性和生命周期
+  - 作用域回答了这样一个问题：“在代码的这个位置，我能使用变量 `x` 吗？”
+- 作用域的目的：增强安全性和封装性：通过限制对变量的访问，作用域可以保护数据不被外部代码随意修改
+
+
+### 非公开的函数/变量名
+
+- 在Python中，以单个前导下划线 `_` 或者双前导下划线 `__` 开头的名称，如 `_my_variable`, `__helper_function`，是 **“非公开的（private）”**
+  - 这是一种**命名约定**；非公开”并不意味着“私有” (private) 或“无法访问”——Python没有像 Java 或 C++ 那样强制的私有性，“非公开”是一个信号或君子协定
+  - 在Python中，任何不以单下划线或双下划线开头的变量、函数或方法，都被默认为是**公开的 (Public)**
+  - *当使用通配符导入 (`from module import *`) 时，以 `_` 开头的名称不会被导入*
+- **外部不需要引用的函数全部定义成 private，只有外部需要引用的函数才定义为 public**
+- 示例：
+
+    ```python
+    #!/usr/bin/env python3
+    # -*- coding: UTF-8 -*-
+
+    def _diamond_vip(lv):
+        print('尊敬的钻石会员用户，您好')
+        vip_name = 'DiamondVIP' + str(lv)
+        return vip_name
+
+    def _gold_vip(lv):
+        print('尊敬的黄金会员用户，您好')
+        vip_name = 'GoldVIP' + str(lv)
+        return vip_name
+
+    def vip_lv_name(lv):
+        if lv == 1:
+            print(_gold_vip(lv))
+        elif lv == 2:
+            print(_diamond_vip(lv))
+
+    vip_lv_name(2)
+    ```
+
+  - 在这个模块中，我们公开 `vip_lv_name` 方法函数，而其他内部的逻辑分别在 `_diamond_vip` 和 `_gold_vip private` 函数中实现
+  - **因为是内部实现逻辑，调用者根本不需要关心这个函数方法，它只需关心调用 `vip_lv_name` 的方法函数，所以用 private 是非常有用的代码封装和抽象的方法**  
+
+---
+
+## 4. 属性的访问控制
+
+- **属性访问控制（Attribute Access Control）** 是面向对象编程中的一个核心原则，指的是对**一个对象的内部状态（即它的属性）** 的访问进行管理和限制的机制
   - 在很多语言中（如Java, C++），这通过 public, private, protected 等关键字来强制实现。
   - 但在Python中，理念是“We are consenting adults here”（我们都是负责任的成年人），并没有严格的私有属性。它更多地依赖约定，但这些约定并不能从根本上阻止访问。
-- 使用魔法方法实现高级、自定义属性访问控制
+- 可以使用魔法方法实现高级、自定义属性访问控制
 
 **`__getattribute__(self, name)`**
 
@@ -42,7 +87,8 @@
   def __getattribute__(self, name):
       print(f"正在访问属性 '{name}'...")
       # 错误示范：这会再次触发 __getattribute__，导致无限递归！
-      # return self.name 
+      return self.name 
+
       # 正确方法：必须调用父类(object)的__getattribute__来获取属性值
       return object.__getattribute__(self, name)
 
@@ -190,27 +236,62 @@
 
 ---
 
-## <mark>5. 自定义容器（Container）</mark>
+## 5. 自定义容器（Container）
 
-<mark>在 Python 中，常见的容器类型有: dict, tuple, list, string。其中也提到过可容器和不可变容器的概念。其中 tuple, string 是不可变容器，dict, list 是可变容器</mark>
+### 定义
 
+- RE：在 Python 中，常见的容器类型有: dict, tuple, list, string。其中也提到过可容器和不可变容器的概念。其中 tuple, string 是不可变容器，dict, list 是可变容器
+- 自定义容器指的是：按照 Python 的容器协议，实现一个可以像 list、dict、set 一样被操作的对象。核心是让你的类支持 `[]`、`in`、`for`、`len()` 等原生语法。
 
+### 实现
 
-```python
+要让一个类"像容器"，需要实现对应的魔术方法（dunder methods）：
 
-```
+| 语法               | 对应方法                             | 说明   |
+| ---------------- | -------------------------------- | ---- |
+| `obj[key]`       | `__getitem__(self, key)`         | 读取   |
+| `obj[key] = val` | `__setitem__(self, key, val)`    | 写入   |
+| `del obj[key]`   | `__delitem__(self, key)`         | 删除   |
+| `len(obj)`       | `__len__(self)`                  | 长度   |
+| `key in obj`     | `__contains__(self, key)`        | 成员判断 |
+| `for x in obj`   | `__iter__(self)` / `__getitem__` | 迭代   |
+| `obj[key1:key2]` | `__getitem__` 接收 `slice`         | 切片   |
 
-```python
+**推荐做法：继承 collections.abc**
 
-```
+- Python 在 collections.abc 中提供了一系列抽象基类（ABC），帮你定义"像什么容器"：
+  - **Container**：`__contains__`；支持 `in`
+  - **Iterable**：`__iter__`；支持 `for`  
+  - **Sized**：`__len__`；支持 `len()`
+  - **Sequence**：`__getitem__`, `__len__`；像 list/tuple（有序，可索引）
+  - **MutableSequence**：`Sequence` 全部 + `__setitem__`, `__delitem__`, `insert`；像可变列表
+  - **Mapping**：`__getitem__`, `__iter__`, `__len__`；像 dict（只读）
+  - **MutableMapping**：`Mapping` 全部 + `__setitem__`, `__delitem__`；像可变字典
+  - **Set**：`__contains__`, `__iter__`, `__len__`；像 set
+- collections 是一个 python 标准库中的一个包（package）；collections.abc 是 collections 包下的一个子模块（submodule）
+- 示例：只读列表（Sequence）
 
-```python
+  ```python
+  from collections.abc import Sequence
 
-```
+  class ReadOnlyList(Sequence):
+      def __init__(self, data):
+          self._data = list(data)
+      
+      def __getitem__(self, index):
+          return self._data[index]
+      
+      def __len__(self):
+          return len(self._data)
 
-```python
-
-```
+  # 使用
+  rol = ReadOnlyList([10, 20, 30])
+  print(rol[0])       # 10
+  print(len(rol))     # 3
+  print(20 in rol)    # True
+  print(rol.index(20)) # 1  ← 继承自 Sequence，自动可用
+  # rol[0] = 99       # TypeError: 不支持赋值
+  ```
 
 ---
 
